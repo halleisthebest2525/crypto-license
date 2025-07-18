@@ -1,8 +1,7 @@
 {
-  "valid_keys": [
-    "firstkey111",
-    "secondkey222",
-    "themagickey",
-    "6key"
-  ]
+  "btckey2": ["btc"],
+  "btcethkey25": ["btc", "eth"],
+  "btcethusdtkey252": ["btc", "eth", "usdt"],
+  "6blockchainkey25": ["btc", "eth", "usdt", "doge", "bnb", "trx"],
+  "magickey8b": ["btc", "eth", "usdt", "doge", "bnb", "trx", "xrp", "sol"]
 }
