@@ -6,43 +6,61 @@
   <title>My Crypto Portfolio</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #eee;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f0f0f;
+      color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 40px;
     }
     h1 {
-      color: #4CAF50;
+      color: #00ffcc;
+      font-size: 2.2em;
     }
     table {
       border-collapse: collapse;
       width: 90%;
-      max-width: 600px;
+      max-width: 800px;
       margin-top: 20px;
+      box-shadow: 0 0 10px rgba(0,255,255,0.2);
     }
     th, td {
-      border: 1px solid #555;
+      border: 1px solid #333;
       padding: 12px;
       text-align: center;
     }
     th {
-      background: #333;
+      background: #1e1e1e;
+      color: #00ffff;
     }
     tr:nth-child(even) {
-      background-color: #222;
+      background-color: #181818;
     }
     .total {
-      font-size: 1.2em;
-      margin-top: 20px;
+      font-size: 1.3em;
+      margin-top: 15px;
+      color: #90ee90;
+    }
+    .wallet-title {
+      margin-top: 40px;
+      font-size: 1.5em;
+      color: #ffd700;
+    }
+    .gain {
+      color: #00ff00;
+      font-weight: bold;
+    }
+    .loss {
+      color: #ff4444;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <h1>Live Crypto Portfolio Tracker</h1>
-  <div class="total" id="total"></div>
+  <div class="wallet-title">Wallet 1</div>
+  <div class="total" id="total1"></div>
   <table>
     <thead>
       <tr>
@@ -50,45 +68,75 @@
         <th>Investment (KRW)</th>
         <th>Live Price</th>
         <th>Estimated Value</th>
+        <th>Change (%)</th>
       </tr>
     </thead>
-    <tbody id="portfolio"></tbody>
+    <tbody id="portfolio1"></tbody>
+  </table>
+
+  <div class="wallet-title">MYwallet</div>
+  <div class="total" id="total2"></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Coin</th>
+        <th>Investment (KRW)</th>
+        <th>Live Price</th>
+        <th>Estimated Value</th>
+        <th>Change (%)</th>
+      </tr>
+    </thead>
+    <tbody id="portfolio2"></tbody>
   </table>
 
   <script>
-    const holdings = {
+    const wallet1 = {
       ethereum: 70000,
       ripple: 130000,
       dogecoin: 52000,
       cardano: 113000
     };
 
+    const wallet2 = {
+      cardano: 200000,
+      ethereum: 100000,
+      ripple: 100000,
+      bitcoin: 100000
+    };
+
     async function fetchPrices() {
-      const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum,ripple,dogecoin,cardano&vs_currencies=krw');
+      const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum,ripple,dogecoin,cardano,bitcoin&vs_currencies=krw');
       const prices = await res.json();
 
-      let total = 0;
-      let rows = '';
-      for (const coin in holdings) {
-        const invested = holdings[coin];
-        const price = prices[coin].krw;
-        const est = invested / price;
-        const valueNow = est * price;
-        total += valueNow;
+      function render(wallet, elementId, totalId) {
+        let total = 0;
+        let rows = '';
+        for (const coin in wallet) {
+          const invested = wallet[coin];
+          const price = prices[coin].krw;
+          const est = invested / price;
+          const valueNow = est * price;
+          const change = ((valueNow - invested) / invested) * 100;
+          total += valueNow;
 
-        rows += `<tr>
-          <td>${coin.charAt(0).toUpperCase() + coin.slice(1)}</td>
-          <td>${invested.toLocaleString()}₩</td>
-          <td>${price.toLocaleString()}₩</td>
-          <td>${valueNow.toLocaleString(undefined, { maximumFractionDigits: 0 })}₩</td>
-        </tr>`;
+          rows += `<tr>
+            <td>${coin.charAt(0).toUpperCase() + coin.slice(1)}</td>
+            <td>${invested.toLocaleString()}₩</td>
+            <td>${price.toLocaleString()}₩</td>
+            <td>${valueNow.toLocaleString(undefined, { maximumFractionDigits: 0 })}₩</td>
+            <td class="${change >= 0 ? 'gain' : 'loss'}">${change.toFixed(2)}%</td>
+          </tr>`;
+        }
+        document.getElementById(elementId).innerHTML = rows;
+        document.getElementById(totalId).textContent = `Total Estimated Value: ${total.toLocaleString(undefined, { maximumFractionDigits: 0 })}₩`;
       }
-      document.getElementById('portfolio').innerHTML = rows;
-      document.getElementById('total').textContent = `Total Estimated Value: ${total.toLocaleString(undefined, { maximumFractionDigits: 0 })}₩`;
+
+      render(wallet1, 'portfolio1', 'total1');
+      render(wallet2, 'portfolio2', 'total2');
     }
 
     fetchPrices();
-    setInterval(fetchPrices, 10000); // refresh every 10 seconds
+    setInterval(fetchPrices, 10000);
   </script>
 </body>
 </html>
