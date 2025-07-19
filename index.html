@@ -1,87 +1,131 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>My Crypto Portfolio</title>
+  <title>📈 My Crypto Portfolio (KRW)</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-    h1 { text-align: center; }
-    table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
-    th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
-    th { background-color: #333; color: white; }
-    .positive { color: green; }
-    .negative { color: red; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #222;
+      color: white;
+    }
+    .gain {
+      color: green;
+      font-weight: bold;
+    }
+    .loss {
+      color: red;
+      font-weight: bold;
+    }
+    .wallet-title {
+      background-color: #f1f1f1;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: left;
+      padding-left: 10px;
+    }
   </style>
 </head>
 <body>
-  <h1>📊 내 암호화폐 포트폴리오 (KRW)</h1>
-
-  <table>
-    <thead>
-      <tr>
-        <th>코인</th>
-        <th>보유량</th>
-        <th>매수가 (₩)</th>
-        <th>현재가 (₩)</th>
-        <th>총 매수금</th>
-        <th>현재 가치</th>
-        <th>손익</th>
-        <th>변동률</th>
-      </tr>
-    </thead>
-    <tbody id="portfolio-body"></tbody>
-  </table>
+  <h1>📊 내 크립토 포트폴리오 (실시간 KRW 기준)</h1>
+  <div id="portfolio"></div>
 
   <script>
-    const KRW_EXCHANGE = 1380; // 1 USD = 1380 KRW (approx)
+    const wallets = {
+      "MyWallet": {
+        "ADA": { amount: 176.211, buyPrice: 1135 },
+        "BTC": { amount: 0.000669, buyPrice: 162133843 },
+        "ETH": { amount: 0.02046, buyPrice: 4887000 },
+        "XRP": { amount: 21.317, buyPrice: 4691 }
+      },
+      "Wallet1": {
+        "ADA": { amount: 100, buyPrice: 1135 },
+        "DOGE": { amount: 156.113, buyPrice: 339 },
+        "ETH": { amount: 0.01443, buyPrice: 4887000 },
+        "XRP": { amount: 26.732, buyPrice: 4670 }
+      }
+    };
 
-    const portfolio = [
-      { coin: "ADA", amount: 176.2, buyPrice: 0.83, symbol: "cardano" },
-      { coin: "BTC", amount: 0.000669, buyPrice: 118000, symbol: "bitcoin" },
-      { coin: "ETH", amount: 0.0204, buyPrice: 3560, symbol: "ethereum" },
-      { coin: "XRP", amount: 21.31, buyPrice: 3.41, symbol: "ripple" },
-      { coin: "ADA (wallet1)", amount: 100, buyPrice: 0.83, symbol: "cardano" },
-      { coin: "DOGE", amount: 156.1, buyPrice: 0.247, symbol: "dogecoin" },
-      { coin: "ETH (wallet1)", amount: 0.0144, buyPrice: 3560, symbol: "ethereum" },
-      { coin: "XRP (wallet1)", amount: 26.732, buyPrice: 3.41, symbol: "ripple" },
-    ];
+    const KRW_SYMBOL = "₩";
 
-    async function fetchPricesAndUpdate() {
-      const symbols = [...new Set(portfolio.map(p => p.symbol))];
-      const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${symbols.join(',')}&vs_currencies=usd`);
-      const prices = await response.json();
-
-      const tbody = document.getElementById("portfolio-body");
-      tbody.innerHTML = "";
-
-      portfolio.forEach(asset => {
-        const currentPrice = prices[asset.symbol]?.usd || 0;
-        const totalBuy = asset.amount * asset.buyPrice * KRW_EXCHANGE;
-        const totalCurrent = asset.amount * currentPrice * KRW_EXCHANGE;
-        const profit = totalCurrent - totalBuy;
-        const percent = (profit / totalBuy) * 100;
-
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${asset.coin}</td>
-          <td>${asset.amount}</td>
-          <td>${(asset.buyPrice * KRW_EXCHANGE).toLocaleString()}₩</td>
-          <td>${(currentPrice * KRW_EXCHANGE).toLocaleString()}₩</td>
-          <td>${totalBuy.toLocaleString(undefined, { maximumFractionDigits: 0 })}₩</td>
-          <td>${totalCurrent.toLocaleString(undefined, { maximumFractionDigits: 0 })}₩</td>
-          <td class="${profit >= 0 ? 'positive' : 'negative'}">
-            ${profit >= 0 ? '+' : ''}${profit.toLocaleString(undefined, { maximumFractionDigits: 0 })}₩
-          </td>
-          <td class="${percent >= 0 ? 'positive' : 'negative'}">
-            ${percent >= 0 ? '+' : ''}${percent.toFixed(2)}%
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
+    async function fetchPricesKRW() {
+      const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,cardano,dogecoin,ripple&vs_currencies=krw");
+      const data = await response.json();
+      return {
+        "BTC": data.bitcoin.krw,
+        "ETH": data.ethereum.krw,
+        "ADA": data.cardano.krw,
+        "DOGE": data.dogecoin.krw,
+        "XRP": data.ripple.krw
+      };
     }
 
-    fetchPricesAndUpdate();
-    setInterval(fetchPricesAndUpdate, 5000);
+    function formatKRW(value) {
+      return KRW_SYMBOL + value.toLocaleString('ko-KR');
+    }
+
+    async function updatePortfolio() {
+      const prices = await fetchPricesKRW();
+      let html = '';
+
+      for (const [walletName, assets] of Object.entries(wallets)) {
+        html += `<table><tr><td class="wallet-title" colspan="6">💼 ${walletName}</td></tr>`;
+        html += `
+          <tr>
+            <th>코인</th>
+            <th>보유량</th>
+            <th>매입가</th>
+            <th>현재가</th>
+            <th>손익</th>
+            <th>% 변화</th>
+          </tr>
+        `;
+        for (const [symbol, { amount, buyPrice }] of Object.entries(assets)) {
+          const currentPrice = prices[symbol];
+          const currentValue = amount * currentPrice;
+          const buyValue = amount * buyPrice;
+          const diff = currentValue - buyValue;
+          const percent = (diff / buyValue) * 100;
+          const diffClass = diff >= 0 ? "gain" : "loss";
+
+          html += `
+            <tr>
+              <td>${symbol}</td>
+              <td>${amount.toFixed(6)}</td>
+              <td>${formatKRW(buyPrice)}</td>
+              <td>${formatKRW(currentPrice)}</td>
+              <td class="${diffClass}">${formatKRW(diff.toFixed(0))}</td>
+              <td class="${diffClass}">${percent.toFixed(2)}%</td>
+            </tr>
+          `;
+        }
+        html += `</table>`;
+      }
+
+      document.getElementById("portfolio").innerHTML = html;
+    }
+
+    updatePortfolio();
+    setInterval(updatePortfolio, 5000);
   </script>
 </body>
 </html>
